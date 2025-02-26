@@ -1,0 +1,21 @@
+<template>
+    
+
+    <lightning-card title="Authenticate Page" class = "lgcard">
+       
+        <lightning-input name = "emailid" label="Username" onchange={runfunc}></lightning-input>
+        <lightning-input name = "name" label="Name" onchange={runfunc}></lightning-input>
+        <lightning-button label = "sub" id="btn1" class = "--slds-c-button-" onclick={btnclick}></lightning-button>
+      
+    
+    </lightning-card>
+
+    <lightning-card id="second">
+        <h1>{email}</h1>
+        
+             <h1>{emaildata}</h1>
+             
+     
+    </lightning-card>
+
+</template> 
