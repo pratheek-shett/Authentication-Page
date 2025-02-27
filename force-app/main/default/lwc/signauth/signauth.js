@@ -14,11 +14,10 @@ export default class Signauth extends LightningElement {
   @track emaillist = []
   @track dataer = {FirstName: "", LastName: ""};
   @track email = "";
-
-  
  
   //togetlistofemailsfromapex
 @track emaildata = [];
+@track showotpfield = false;
 
 
 //WIRE METHOD TO GET DATA FROM APEX
@@ -76,6 +75,7 @@ export default class Signauth extends LightningElement {
     //BUTTON CLICK FUNCTION
 
      async btnclick (){
+     
       
      let getdatafromuser = this.email.toLowerCase();
     
@@ -84,12 +84,10 @@ export default class Signauth extends LightningElement {
         window.alert("Please enter a valid email");
         return;
       }
-        if(!getdatafromuser.endsWith("@novigosolutions.com")){
+      if(!getdatafromuser.endsWith("@novigosolutions.com")){
           window.alert("authonticate error");
           return;
-         }
-      
-
+        }
       try{
         const result = await getemaildatafunction({usernameemail: getdatafromuser});
 
@@ -99,6 +97,7 @@ export default class Signauth extends LightningElement {
         }
         let lowerresult = result.map(item => item.Email.toLowerCase());
         if(lowerresult.includes(getdatafromuser)){
+          this.viewenabler();
          window.alert("Email Found");
         }else{
          window.alert("Fetch error");
@@ -110,10 +109,10 @@ export default class Signauth extends LightningElement {
 
       
     }
-
-
     
-    
+    viewenabler(){
+      this.showotpfield = true;
+    }
 }
     
 
