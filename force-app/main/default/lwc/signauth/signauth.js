@@ -6,6 +6,7 @@ import noHeader from '@salesforce/resourceUrl/NoHeader';
 import HideLightningHeader from '@salesforce/resourceUrl/NoHeader';
 import { loadStyle, loadScript } from 'lightning/platformResourceLoader';
 import getemaildatafunction from '@salesforce/apex/Mailget.getemaildatafunction';
+import sendingemail from '@salesforce/apex/Sendemail.sendingemail';
 import Field from "@salesforce/schema/AccountHistory.Field";
 export default class Signauth extends LightningElement {
   
@@ -94,7 +95,7 @@ export default class Signauth extends LightningElement {
         window.alert("Please enter a valid email");
         return;
       }
-      if(!getdatafromuser.endsWith("@novigosolutions.com")){
+      if(!getdatafromuser.endsWith("@gmail.com")){
           window.alert("authonticate error");
           return;
         }
@@ -110,7 +111,7 @@ export default class Signauth extends LightningElement {
           this.viewenabler();
           this.firstbutton = false;
           this.generateotp();
-         window.alert("Email Found");
+          sendingemail({toAddress: this.email, otp:this.otpdata});
         }else{
          window.alert("Fetch error");
         }
@@ -173,5 +174,10 @@ otpvalidate(){
 submitdata(){
   this.otpvalidate();
 }
+
+
+
 }
+
+
 
