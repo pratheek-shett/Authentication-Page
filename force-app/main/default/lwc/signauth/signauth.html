@@ -5,14 +5,13 @@
     <lightning-card class = "slds-text-align_center custom-card" title = "Authentication">
 
         <lightning-input name = "emailid" placeholder="Username" class = "usernameinput" onchange={runfunc}></lightning-input>
-        <lightning-input lwc:if={showotpfield} name = "name" placeholder="Email OTP" onchange={runfunc}></lightning-input>
-        <lightning-button label = "sub" id="btn1" class = "--slds-c-button-" onclick={btnclick}></lightning-button>
+        <lightning-input if:true ={showotpfield} name = "name" placeholder="Email OTP" onchange={runfunc}></lightning-input>
+        <lightning-button lwc:if = {firstbutton} label = {buttonlabel} id="btn1" class = "--slds-c-button-" onclick={btnclick} ></lightning-button>
+        <lightning-button lwc:else label = {secondbuttonlabel} id="btn2" class = "--slds-c-button-" onclick={submitdata}></lightning-button>
     </lightning-card>
 
-    <!-- <lightning-card id="second">
-        <h1>{email}</h1>
-             <h1>{emaildata}</h1>
-        
-    </lightning-card> -->
+    <lightning-card id="second">
+        <h1>{otpdata}</h1>
+    </lightning-card>
 </div>
 </template> 
