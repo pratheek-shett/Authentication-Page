@@ -34,18 +34,8 @@ export default class Signauth extends NavigationMixin(LightningElement)  {
 @track showotpfield = false;
 
 
-//WIRE METHOD TO GET DATA FROM APEX
-// @wire(getemaildatafunction,{usernameemail: "$email"})
-
-// datafetchfromapex({data,error}){
-
-//   if(data){
-//       this.emaildata = data;
-//   }else if(error)
-//   window.alert("Fetch Error");
-// }
  
-
+//navigates to the home page
 navigatetohome(e) {
   this[NavigationMixin.Navigate]({
       "type": "standard__navItemPage",
@@ -53,11 +43,10 @@ navigatetohome(e) {
           "apiName": "homepage"
       }
   });
+  
 }
   //GET USER INPUT DATA
- 
-
-
+  //Gets the user input and stores it in the variable
     runfunc(event) {
         let getname = event.target.name;
       
@@ -69,34 +58,19 @@ navigatetohome(e) {
             this.userenteredotp = event.target.value;
             this.dataer.LastName = event.target.value;
         }
-        // const event = new ShowToastEvent({
-        //     title: "Success",  // Provide a valid title
-        //     message: "Button clicked!",  // Provide a valid message
-        //     variant: "success"
-        //      // Ensure variant is correctly written
-        // });
-
-        // this.buttonlabel = "Submitted";
-        // this.buttonlabel = "Submit";
-        // this.dispatchEvent(event);
-    }
-    
-    //USER VALIDATION FUNCTION
-     validate(getemail){
-
       
-      //  var lowercaseemail = this.emaildata.map((item =>{return item.toLowerCase()}))
-
-      // if(lowercaseemail.includes(getemail)){
-      //   window.alert("email found");
-      // }else{
-      //   window.alert("not found");
-      // }
-
     }
 
     
     //BUTTON CLICK FUNCTION
+
+    //converts to lower case when user enters email
+    //sanities user input
+    //gets the apex class and passes user input and returns if present
+    //first send otp button will be disabled and submit button will be enabled
+    //Calls generateotp function
+    //calls the sendemailfunction
+
 
      async btnclick (){
 
@@ -104,6 +78,12 @@ navigatetohome(e) {
      let getdatafromuser = this.email.toLowerCase();
       if(getdatafromuser.trim() === ""){
         window.alert("Please enter a valid email");
+        return;
+      }
+
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if(!emailRegex.test(getdatafromuser)){
+        window.alert("Invalid email format");
         return;
       }
       if(!getdatafromuser.endsWith("@gmail.com")){
@@ -142,6 +122,7 @@ navigatetohome(e) {
       
     }
     //TO SHOW THE OTP FIELD
+    //Once user enters the email, and btnclick is called it disables email field and enables the otp field
     viewenabler(){
       this.showotpfield = true;
       this.hideemailfield = true;
@@ -156,8 +137,115 @@ navigatetohome(e) {
         console.log(this.otpdata);
         return;
 
+}
 
-  //     fetch('https://randommer.io/api/Number/Generate?Min=1000&Max=9999&Quantity=1', {
+//Function to validate the otp given bu user and generated otp
+//It also changes the button label from submit to submittes
+//Navigationmixin is used to navigate to homepage component
+//And the countdown display will be hidden once otp verified
+otpvalidate(){
+  if(! this.userenteredotp){
+    window.alert("Please enter your OTP");
+    return;
+  }
+    if(parseInt(this.userenteredotp) === this.otpdata ){
+        
+        this.secondbuttonlabel = "Submitted";
+        this.countdownDisplay = '';
+        this.navigatetohome();
+        
+        
+
+    }else{
+      window.alert("Invalid OTP");
+    }
+
+}
+//Function to validate the otp given bu user and generated otp
+submitdata(){
+  this.otpvalidate();
+}
+
+//Resend Button Function 
+//startcountdown timer of 4sec
+//change button to submit from get otp
+//generates new otp using js
+//sending email with new otp
+//Otppresendtimer function disables resend otp button for 4 minutes
+resendotp(){
+    this.startCountdown();
+    this.secondbuttonlabel = "submit";
+    this.generateotp();
+    this.sendautoemail();
+    this.Otpresendtimer();
+}
+
+
+//RESEND OTP BUTTON TIMESET FOR 4 MINUTES
+Otpresendtimer(){
+
+  this.resendotpbtnvisibility = true;
+  this.timeminutes = Date.now() + 240000;
+  clearTimeout(this.timer);
+   setTimeout((minu) => {
+      this.resendotpbtnvisibility = false;
+    }, 240000);
+  }
+
+
+
+  //SENDING EMAIL WITH OTP APEX
+
+  sendautoemail(){
+    sendingemail({toAddress: this.email, otp:this.otpdata});
+    return;
+  }
+
+
+
+  //Function to show timeleft
+
+startCountdown() {
+    let timeLeft = 4 * 60; // 4 minutes in seconds
+
+    const interval = setInterval(() => {
+        let minutes = Math.floor(timeLeft / 60);
+        let seconds = timeLeft % 60;
+        
+        this.countdownDisplay = `Resend OTP by: ${minutes}:${seconds.toString().padStart(2, '0')}`; // Store in variable
+        
+        if (timeLeft === 0) {
+            clearInterval(interval);
+            this.countdownDisplay = '';
+        } else {
+            timeLeft--;
+        }
+    }, 1000);
+}
+
+
+
+
+
+//WIRE METHOD TO GET DATA FROM APEX
+// @wire(getemaildatafunction,{usernameemail: "$email"})
+
+// datafetchfromapex({data,error}){
+
+//   if(data){
+//       this.emaildata = data;
+//   }else if(error)
+//   window.alert("Fetch Error");
+// }
+
+  // getTimeLeft() {
+  //   const timeLeft = Math.max(0, this.endTime - Date.now()); 
+  //   const minutes = Math.floor(timeLeft / 60000);
+  //   const seconds = Math.floor((timeLeft % 60000) / 1000);
+  //   return`${minutes}m ${seconds}s`;
+  // }
+
+ //     fetch('https://randommer.io/api/Number/Generate?Min=1000&Max=9999&Quantity=1', {
   //         method: 'GET',
   //         headers: {
   //             'Accept': 'application/json', // Specify the response format
@@ -179,87 +267,32 @@ navigatetohome(e) {
   //     });
   // }
 
-}
 
+      
+    //USER VALIDATION FUNCTION
+    //  validate(getemail){
 
-otpvalidate(){
-  if(! this.userenteredotp){
-    window.alert("Please enter your OTP");
-    return;
-  }
-    if(parseInt(this.userenteredotp) === this.otpdata ){
-        
-        this.secondbuttonlabel = "Submitted";
-        clearInterval(interval);
-        this.countdownDisplay = '';
-        this.navigatetohome();
+      
+    //   //  var lowercaseemail = this.emaildata.map((item =>{return item.toLowerCase()}))
 
-    }else{
-      window.alert("Invalid OTP");
-    }
+    //   // if(lowercaseemail.includes(getemail)){
+    //   //   window.alert("email found");
+    //   // }else{
+    //   //   window.alert("not found");
+    //   // }
 
-}
+    // }
 
-submitdata(){
-  this.otpvalidate();
-}
-resendotp(){
-    this.startCountdown();
-    this.secondbuttonlabel = "submit";
-    this.generateotp();
-    this.sendautoemail();
-    this.Otpresendtimer();
-}
+      // const event = new ShowToastEvent({
+        //     title: "Success",  // Provide a valid title
+        //     message: "Button clicked!",  // Provide a valid message
+        //     variant: "success"
+        //      // Ensure variant is correctly written
+        // });
 
-
-Otpresendtimer(){
-
-  this.resendotpbtnvisibility = true;
-  this.timeminutes = Date.now() + 240000;
-  clearTimeout(this.timer);
-   setTimeout((minu) => {
-      this.resendotpbtnvisibility = false;
-    }, 240000);
-  }
-
-  // getTimeLeft() {
-  //   const timeLeft = Math.max(0, this.endTime - Date.now()); 
-  //   const minutes = Math.floor(timeLeft / 60000);
-  //   const seconds = Math.floor((timeLeft % 60000) / 1000);
-  //   return`${minutes}m ${seconds}s`;
-  // }
-
-
-  sendautoemail(){
-    sendingemail({toAddress: this.email, otp:this.otpdata});
-    return;
-  }
-
-
-
-  //Function to show timeleft
-
-  
-
-startCountdown() {
-    let timeLeft = 4 * 60; // 4 minutes in seconds
-
-    const interval = setInterval(() => {
-        let minutes = Math.floor(timeLeft / 60);
-        let seconds = timeLeft % 60;
-        
-        this.countdownDisplay = `Resend OTP by: ${minutes}:${seconds.toString().padStart(2, '0')}`; // Store in variable
-        
-        if (timeLeft === 0) {
-            clearInterval(interval);
-            this.countdownDisplay = '';
-        } else {
-            timeLeft--;
-        }
-    }, 1000);
-}
-
-
+        // this.buttonlabel = "Submitted";
+        // this.buttonlabel = "Submit";
+        // this.dispatchEvent(event);
 
 }
 
