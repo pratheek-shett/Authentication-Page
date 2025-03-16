@@ -19,7 +19,9 @@ public static void sendingemail(String toAddress){
     email.setPlainTextBody('Hello Please verify the OTP : ' + getOTP);
     Messaging.sendEmail(new Messaging.SingleEmailMessage[] {email});
 
-    //Remove otp from the object
+    //Remove otp from the object 
+
+
     
 
     List<Authentication_Object__c> Aobject = [select OTP__c from Authentication_Object__c where Email__c = :toAddress];
@@ -27,12 +29,9 @@ public static void sendingemail(String toAddress){
     if(!Aobject.isEmpty()){
         delete Aobject;
     }
-
+    
 
 }
-
-
-
     
 // public static void sendingemail(String toAddress, integer otp){
 //     Messaging.SingleEmailMessage email = new Messaging.SingleEmailMessage();

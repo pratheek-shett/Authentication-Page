@@ -5,7 +5,7 @@ public without sharing class Validator {
     //check email
     @AuraEnabled(cacheable = true)
     public static Boolean checkid(String emailid){
-       if(String.isBlank(emailid)){
+       if(String.isEmpty(emailid)){
             return false; 
         }
              return emailid.endsWith('@gmail.com');
@@ -19,9 +19,9 @@ public without sharing class Validator {
         //if already otp is present
         List<Authentication_Object__c> otplist = [ select OTP__c from Authentication_Object__c where Email__c =:email];
 
-        if(!otplist.isEmpty()){
-            delete otplist;
-        }
+        // if(!otplist.isEmpty()){
+        //     delete otplist;
+        // }
         
         Integer otpValue = (integer)(Math.floor(Math.random() *9000)+1000);
         authobj.Email__c = email;
