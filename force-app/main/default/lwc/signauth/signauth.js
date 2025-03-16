@@ -8,6 +8,9 @@ import { loadStyle, loadScript } from 'lightning/platformResourceLoader';
 import getemaildatafunction from '@salesforce/apex/Mailget.getemaildatafunction';
 import sendingemail from '@salesforce/apex/Sendemail.sendingemail';
 import Field from "@salesforce/schema/AccountHistory.Field";
+import checkid from '@salesforce/apex/Validator.checkid';
+import generateotp from '@salesforce/apex/Validator.generateotp'; //validateotp
+import validateotp from '@salesforce/apex/Validator.validateotp';
 import { NavigationMixin } from 'lightning/navigation';
 
 export default class Signauth extends NavigationMixin(LightningElement)  {
@@ -19,7 +22,7 @@ export default class Signauth extends NavigationMixin(LightningElement)  {
   @track countdownDisplay = "";
   @track resendotpbtnvisibility = false;
   @track hideemailfield = false;
-  //fomated otp generated variable
+  //fomated otp generated variables
   @track otpdata;
   @track buttondisable = false;
   //user entered otp variable
@@ -38,10 +41,10 @@ export default class Signauth extends NavigationMixin(LightningElement)  {
 //navigates to the home page
 navigatetohome(e) {
   this[NavigationMixin.Navigate]({
-      "type": "standard__navItemPage",
-      "attributes": {
-          "apiName": "homepage"
-      }
+    type: 'standard__webPage',
+    attributes: {
+        url: '/jcdlkjcl' 
+    }
   });
   
 }
@@ -49,8 +52,6 @@ navigatetohome(e) {
   //Gets the user input and stores it in the variable
     runfunc(event) {
         let getname = event.target.name;
-      
-
         if(getname === "emailid"){
             this.email = event.target.value;
             this.dataer.FirstName = event.target.value;
@@ -58,7 +59,6 @@ navigatetohome(e) {
             this.userenteredotp = event.target.value;
             this.dataer.LastName = event.target.value;
         }
-      
     }
 
     
@@ -86,30 +86,40 @@ navigatetohome(e) {
         window.alert("Invalid email format");
         return;
       }
-      if(!getdatafromuser.endsWith("@gmail.com")){
-          window.alert("authonticate error");
-          return;
-        }
-      try{
-        const result = await getemaildatafunction({usernameemail: getdatafromuser});
+      // here check this same in the server end also   !!!  SERVER END
+      // if(!getdatafromuser.endsWith("@gmail.com")){
+      //     window.alert("authonticate error");
+      //     return;
+      //   }
 
-        if(!result || result.length === 0){
-          window.alert("email not found");
-          return;
-        }
+
+      //checks email or not
+     try{
+      let valid = await checkid({emailid:getdatafromuser});
+      if(!valid){
+        window.alert(error.body.message);
+        return;
+      }
+
+
+      // checkid({emailid:getdatafsromuser})
+      // .then((result) => {
+      //   if(!result ||  result.length === 0){
+      //     window.alert("Authentication error email not found");
+      //     return Promise.reject("Email Validation Failed");
+      //   }
+      // });
+        const result = await getemaildatafunction({usernameemail: getdatafromuser});
         let lowerresult = result.map(item => item.Email.toLowerCase());
         if(lowerresult.includes(getdatafromuser)){
           this.viewenabler();
           this.firstbutton = false;
           this.buttondisable = true;
-          this.generateotp();
-          this.sendautoemail();
+          this.otpgenerated(); //!!!  SERVER END !!
+          this.sendautoemail(); 
           this.startCountdown();
-          
           this.Otpresendtimer();
-          
-          console.log(this.otpdata);
-
+          return;
           
         }else{
          window.alert("Fetch error");
@@ -130,40 +140,57 @@ navigatetohome(e) {
     }
 
 
-    generateotp() {
+    otpgenerated() {  //!!!  SERVER END !!
         // const randomnumber = Math.random()*9999;
-        const formatedotp = Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000
-        this.otpdata = formatedotp;
-        console.log(this.otpdata);
-        return;
-
+        
+           generateotp({email: this.email}).catch(error =>{
+            window.alert(error.body.message);
+            return;
+           });
 }
 
 //Function to validate the otp given bu user and generated otp
 //It also changes the button label from submit to submittes
 //Navigationmixin is used to navigate to homepage component
 //And the countdown display will be hidden once otp verified
-otpvalidate(){
-  if(! this.userenteredotp){
-    window.alert("Please enter your OTP");
-    return;
-  }
-    if(parseInt(this.userenteredotp) === this.otpdata ){
-        
+
+
+//try to do it in server end
+// async otpvalidate(){
+//    validateotp(){
+//     try{
+
+//     }
+//   }
+
+async validateotp(){
+    try{
+      const validate = await validateotp({userenterdotp: this.userenteredotp, Email: this.email});
+      if(validate === true){
         this.secondbuttonlabel = "Submitted";
         this.countdownDisplay = '';
         this.navigatetohome();
-        
-        
-
-    }else{
-      window.alert("Invalid OTP");
+      }
+    }catch(error){
+      window.alert(error.body.message);
     }
-
 }
+  // if(! this.userenteredotp){
+  //   window.alert("Please enter your OTP");
+  //   return;
+  // }
+  //   if(parseInt(this.userenteredotp) === this.otpdata ){
+  //       this.secondbuttonlabel = "Submitted";
+  //       this.countdownDisplay = '';
+  //       this.navigatetohome();
+  //   }else{
+  //     window.alert("Invalid OTP");
+  //   }
 //Function to validate the otp given bu user and generated otp
+
+
 submitdata(){
-  this.otpvalidate();
+  this.validateotp(); //!!!  SERVER END !!
 }
 
 //Resend Button Function 
@@ -173,9 +200,10 @@ submitdata(){
 //sending email with new otp
 //Otppresendtimer function disables resend otp button for 4 minutes
 resendotp(){
+    clearInterval(interval);
     this.startCountdown();
     this.secondbuttonlabel = "submit";
-    this.generateotp();
+    this.otpgenerated(); //!!!  SERVER END !!
     this.sendautoemail();
     this.Otpresendtimer();
 }
@@ -197,7 +225,7 @@ Otpresendtimer(){
   //SENDING EMAIL WITH OTP APEX
 
   sendautoemail(){
-    sendingemail({toAddress: this.email, otp:this.otpdata});
+    sendingemail({toAddress: this.email});
     return;
   }
 
@@ -223,9 +251,7 @@ startCountdown() {
     }, 1000);
 }
 
-
-
-
+}
 
 //WIRE METHOD TO GET DATA FROM APEX
 // @wire(getemaildatafunction,{usernameemail: "$email"})
@@ -294,7 +320,7 @@ startCountdown() {
         // this.buttonlabel = "Submit";
         // this.dispatchEvent(event);
 
-}
+
 
 
 

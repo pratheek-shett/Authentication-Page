@@ -124,7 +124,7 @@ html, body {
     
     display: flex;
     height: 100vh;  
-    width: 100vw;  
+   max-width: 100%;  
     overflow: hidden;
 }
 .left-section{
@@ -142,7 +142,7 @@ html, body {
     display: flex;
     justify-content: center;
     align-items: center;
-    max-width: 60%; /* Restrict max width */
+    max-width: 60%;
     width: 100%;
     overflow: hidden;
 }
