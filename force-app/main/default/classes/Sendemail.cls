@@ -4,33 +4,37 @@ public without sharing class Sendemail {
 
 public static void sendingemail(String toAddress){
 
-   
 
+   if(Limits.getEmailInvocations() >= Limits.getLimitEmailInvocations()){
+      throw new AuraHandledException('System busy, please try again later');
+    }
+   
+   try{
+
+      delete [SELECT Id FROM Authentication_Object__c 
+               WHERE Email__c = :toAddress LIMIT 10];
 
     integer getOTP = Validator.generateotp(toAddress);
-
     if(getOTP == null){
        throw new AuraHandledException('No OTP Found');
     }
-
     Messaging.SingleEmailMessage email = new Messaging.SingleEmailMessage();
     email.setToAddresses(new String[] {toAddress});
     email.setSubject('Authenticate OTP');
+    email.setReplyTo('pratheekshetty2004@gmail.com');
+   
+
+    // Set the correct organization-wide email address ID
+    email.setOrgWideEmailAddressId('0D2WU0000001JWr');
     email.setPlainTextBody('Hello Please verify the OTP : ' + getOTP);
     Messaging.sendEmail(new Messaging.SingleEmailMessage[] {email});
+    System.debug('sent email');
 
-    //Remove otp from the object 
-
-
+   }catch (Exception e) {
+      System.debug('Error sending email: ' + e.getMessage());
+      throw new AuraHandledException('Error sending email: ' + e.getMessage());
+  }
     
-
-    List<Authentication_Object__c> Aobject = [select OTP__c from Authentication_Object__c where Email__c = :toAddress];
-
-    if(!Aobject.isEmpty()){
-        delete Aobject;
-    }
-    
-
 }
     
 // public static void sendingemail(String toAddress, integer otp){

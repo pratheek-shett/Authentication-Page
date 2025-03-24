@@ -19,7 +19,5 @@ public without sharing class Mailget {
         //}
         return [select Email from contact where Email = :usernameemail ];
 
-
-
     }
 }
